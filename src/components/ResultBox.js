@@ -3,11 +3,6 @@ import "bootstrap/dist/css/bootstrap.css";
 import {getFormValues,convertArrayToObject} from './convertService.js';
 
 export default class ResultBox extends React.Component {
-    constructor(props) {
-        super(props);
-
-    }   
-    
     
     render() {
         return (

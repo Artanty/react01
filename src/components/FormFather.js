@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 import Form from './Form';
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -10,45 +10,50 @@ export default class FormFather extends React.Component {
         super(props);
         this.state = {
             children: [],
-            thisChildId: 0,
+            thisChildId: 1,
             childrenInputFields: [{formId:0,formTitle:'',items:[]}]
         }
         this.handleAddChild = this.handleAddChild.bind(this);
-        this.recieveChildProps = this.recieveChildProps.bind(this);
+        this.handleRemoveChild = this.handleRemoveChild.bind(this);
+        this.receiveChildProps = this.receiveChildProps.bind(this);
 
-    }
-    renderChild(id){
-        return <Form id={id} triggerFatherFunc={this.recieveChildProps}/>
+
     }
     handleAddChild(){
 
-        this.setState({ thisChildId: this.state.thisChildId + 1 });//каждый новый созданный ребенок получает id (статический порядковый номер)
+        this.setState((prevState) => {//https://learn-reactjs.ru/faq/component-state
+            return {thisChildId: prevState.thisChildId + 1}
+        });
 
-        const child = this.renderChild(this.state.thisChildId);//отправляем id в компонент и рендерим его
-
+        const child = {id:this.state.thisChildId}
         this.setState({children: [...this.state.children,child]})
 
     }
-    handleRemoveChild(index){
-        const values = [...this.state.children];
-        values.splice(index, 1);
-        this.setState(state => ({
-            children: values
-        }));
+    handleRemoveChild(itemId){
+
+        const items = this.state.children.filter(item => item.id !== itemId);
+        this.setState({ children: items });
+
     }
     componentDidMount(){
         
         this.handleAddChild();
     }
-    recieveChildProps(child){
-        var arr = this.state.childrenInputFields;//сокращаем для читабельности
-        arr = arr.filter(el => el.formId !== child.formId);//убираем старые значения ребенка
-        
-        this.setState(state => ({
-            childrenInputFields: [...arr,child] //пушим новые значения ребенка
-        }));
+    receiveChildProps(childData){
+        let arr = this.state.childrenInputFields;
+        arr = arr.filter(el => el.formId !== childData.formId);//убираем ребенка со старыми значениями
 
-        // console.log(this.state.childrenInputFields);
+        if(childData.action === 'remove'){
+            this.setState(state => ({
+                childrenInputFields: arr //пушим массив без ребенка
+            }));
+        }
+        if(childData.action === 'update'){
+            this.setState(state => ({
+                childrenInputFields: [...arr,childData] //пушим новые значения ребенка
+            }));
+        }
+        // console.log(childData.action);
 
     }
     
@@ -58,23 +63,25 @@ export default class FormFather extends React.Component {
             <div className="container-fluid">
                 <div className="row mt-2">
                     <div className="col-6">
-                {this.state.children.map((item, index) => (
-                    <Fragment key={`${item}~${index}`}>
-                    <div className="row">
+                {this.state.children.map((item) => (
+                    <React.Fragment key={item.id}>
+                    <div className="row mt-2">
                         <div className="col-12">
                             <fieldset>
                               <legend>
                                 
                                 <button className="btn btn-primary ml-2" onClick={this.handleAddChild}>Добавить форму</button>
-                                <button className="btn btn-danger mx-2" disabled={this.state.children.length<2} onClick={()=>this.handleRemoveChild(index)}
+                                <button className="btn btn-danger mx-2" disabled={this.state.children.length<2} onClick={()=>this.handleRemoveChild(item.id)}
                                 >Удалить форму</button>
 
                               </legend>
-                                {item}
+
+                                <Form key={item.id} id={item.id} triggerFatherFunc={this.receiveChildProps}/>
+
                             </fieldset>
                         </div>
                     </div>
-                    </Fragment>
+                    </React.Fragment>
 
 
                 ))}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import "bootstrap/dist/css/bootstrap.css";
 import ResultBox from './ResultBox';
 
@@ -7,10 +7,10 @@ export default class Form extends React.Component {
         super(props);
         this.state = {
             inputFields: [{inputType: 'email', inputValue: '', validType:'email', validPattern:'[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$'}],
-            formTitle: 'Форма '+ (props.id),
+            formTitle: 'Форма '+ (props.id + 1),
             collapsed: false //prop for child collapse
         };
-
+        this.thisId = '';
         this.submit = this.submit.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleRemoveFields = this.handleRemoveFields.bind(this);
@@ -76,18 +76,24 @@ export default class Form extends React.Component {
     }
     componentDidMount(){
         this.refreshFather();
+        console.log(this.props.id);
+        this.thisId = this.props.id;
+    }
+    componentDidUpdate(prevProps, prevState, snapshot){
+        console.log(prevProps);
+        console.log(this.props);
     }
 
     componentWillUnmount() {
-        this.refreshFather('remove');
-        // console.log('form delete id: ' + this.props.id);
+        console.log('form delete id: ' + this.props.id);//некорректно!
+        // this.props.triggerFatherFunc({formId:this.props.id,formTitle:'deleted',items:[]});
+        // console.log(this.thisId);
     }
     handleChangeTitle(e){
         this.setState({formTitle: e.target.value});
-        this.refreshFather();
     }
-    refreshFather(action='update'){
-        this.props.triggerFatherFunc({action:action,formId:this.props.id,formTitle:this.state.formTitle,items:this.state.inputFields});
+    refreshFather(){
+        this.props.triggerFatherFunc({formId:this.props.id,formTitle:this.state.formTitle,items:this.state.inputFields});
     }
     render() {
         return (
@@ -101,11 +107,10 @@ export default class Form extends React.Component {
                                     </div>
                                 </div>
 
+                            {this.state.inputFields.map((inputField, index) => (
+                                <div className="form-row d-flex justify-content-around">
 
-                                {this.state.inputFields.map((inputField, index) => (
-
-                                    <React.Fragment key={`${inputField}~${index}`}>
-                                        <div className="form-row d-flex justify-content-around">
+                                    <Fragment key={`${inputField}~${index}`}>
 
                                             <div className="form-group col-sm-8 col-md-3 col-lg-4">
                                                 <select name="inputType" value={inputField.inputType} onChange={event => this.handleInputChange(index,event)}
@@ -136,14 +141,12 @@ export default class Form extends React.Component {
                                                     disabled={this.state.inputFields.length<2}
                                                 > - </button>
                                             </div>
-                                        </div>
-                                    </React.Fragment>
-
+                                        </Fragment>
+                                    </div>
                                 ))}
-
                                 
-                                <button className="btn btn-success mr-2" type="submit">Отправить</button>
-                                <button className="btn btn-link" onClick={this.triggerCollapseChild}>Информация</button>
+                                    <button className="btn btn-success mr-2" type="submit">Отправить</button>
+                                    <button className="btn btn-link" onClick={this.triggerCollapseChild}>Информация</button>
                                 
                             </form>
                             <ResultBox collapsed={this.state.collapsed} data={this.state.inputFields}/>
